@@ -2,7 +2,7 @@ version: 2
 jobs:
   build:
     docker:
-      - image:  conanio/gcc7
+      - image:  conanio/gcc9
     steps:
       - checkout
       - run:
