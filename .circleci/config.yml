@@ -1,0 +1,16 @@
+version: 2
+jobs:
+  build:
+    docker:
+      - image:  gcc/9.3
+    steps:
+      - checkout
+      - run:
+          name: Creating Build Files
+          command: 'mkdir build && cd build && cmake ..'
+
+workflows:
+  version: 2
+  build:
+    jobs:
+      - build
