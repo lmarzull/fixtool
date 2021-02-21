@@ -8,6 +8,12 @@ jobs:
       - run:
           name: Creating Build Files
           command: 'mkdir build && cd build && cmake ..'
+      - run:
+          name: Compiling project
+          command: 'make -C build'
+      - run:
+          name: Running tests
+          command: ./build/tests/test-fixtool
 
 workflows:
   version: 2
