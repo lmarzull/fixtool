@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-CMAKE_MINIMUM_REQUIRED(VERSION 3.19)
+CMAKE_MINIMUM_REQUIRED(VERSION 3.18)
 
 PROJECT(
   fixtool VERSION 1.0.0
