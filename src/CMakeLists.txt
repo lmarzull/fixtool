@@ -5,9 +5,10 @@ CMAKE_MINIMUM_REQUIRED(VERSION 3.18)
 
 SET(CMAKE_BUILD_TYPE Debug)
 
-#ADD_LIBRARY(fixtool-lib
+ADD_LIBRARY(fixtool-lib
+  ManagedMemory.cc
+)
 #SharedMemory.cc
-#ManagedMemory.cc
 #ManagedHeap.cc)
 #TARGET_LINK_LIBRARIES(fixtool-lib rt)
 
