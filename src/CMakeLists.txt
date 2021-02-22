@@ -7,10 +7,10 @@ SET(CMAKE_BUILD_TYPE Debug)
 
 ADD_LIBRARY(fixtool-lib
   ManagedMemory.cc
+  SharedMemory.cc
 )
-#SharedMemory.cc
 #ManagedHeap.cc)
-#TARGET_LINK_LIBRARIES(fixtool-lib rt)
+TARGET_LINK_LIBRARIES(fixtool-lib rt)
 
 #ADD_EXECUTABLE(fixtool
 #main.cc

@@ -6,6 +6,7 @@ ADD_EXECUTABLE(test-fixtool
   doctest.cc
   test-OffsetPtr.cc
   test-ManagedMemory.cc
+  test-SharedMemory.cc
 )
 
 #  test-AVLTree.cc
