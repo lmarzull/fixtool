@@ -3,7 +3,36 @@
 
 
 #include <filesystem>
+#include "OffsetPtr.h"
 #include "ManagedMemory.h"
+
+
+//------------------------------------------------------------------------------
+template <typename T>
+class SharedMemoryAllocator : public std::pmr::polymorphic_allocator<T>
+{
+public:
+  using value_type = T;
+  using size_type = std::size_t;
+  using ptrdiff_t = std::ptrdiff_t;
+
+  using pointer = OffsetPtr<value_type>;
+  using const_pointer = OffsetPtr<const value_type>;
+
+  using propagate_on_container_copy_assignment = std::true_type;
+  using propagate_on_container_move_assignment = std::true_type;
+  using propagate_on_container_swap            = std::true_type;
+
+  SharedMemoryAllocator(std::pmr::memory_resource* mr)
+    : std::pmr::polymorphic_allocator<T>(mr)
+  {
+  }
+
+  SharedMemoryAllocator<T> select_on_container_copy_construction() const
+  {
+    return SharedMemoryAllocator<T>(this->resource());
+  }
+};
 
 
 
@@ -76,31 +105,6 @@ private:
 
 
 #if 0
-template <typename T>
-class SharedMemoryAllocator : public std::pmr::polymorphic_allocator<T>
-{
-public:
-  using value_type = T;
-  using size_type = std::size_t;
-  using ptrdiff_t = std::ptrdiff_t;
-
-  using pointer = OffsetPtr<value_type>;
-  using const_pointer = OffsetPtr<const value_type>;
-
-  using propagate_on_container_copy_assignment = std::true_type;
-  using propagate_on_container_move_assignment = std::true_type;
-  using propagate_on_container_swap            = std::true_type;
-
-  SharedMemoryAllocator(std::pmr::memory_resource* mr)
-    : std::pmr::polymorphic_allocator<T>(mr)
-  {
-  }
-
-  SharedMemoryAllocator<T> select_on_container_copy_construction() const
-  {
-    return SharedMemoryAllocator<T>(this->resource());
-  }
-};
 
 
 template <typename T>

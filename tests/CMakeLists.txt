@@ -7,11 +7,10 @@ ADD_EXECUTABLE(test-fixtool
   test-OffsetPtr.cc
   test-ManagedMemory.cc
   test-SharedMemory.cc
+  test-AVLTree.cc
 )
 
-#  test-AVLTree.cc
 #  test-ManagedMemory.cc
-#  test-AVLTree.cc
 #  test-ManagedAllocator.cc
 
 TARGET_INCLUDE_DIRECTORIES(test-fixtool PRIVATE ${CMAKE_SOURCE_DIR}/src)
