@@ -17,9 +17,7 @@ public:
   OffsetPtr(const offset_ptr& );
   OffsetPtr(offset_ptr&& );
 
-
   std::size_t offset() const { return _offset; }
-
 
   T_pointed_type*       operator->();
   const T_pointed_type* operator->() const;
@@ -52,16 +50,16 @@ OffsetPtr<T_pointed_type>::OffsetPtr(T_pointed_type* elt)
 //------------------------------------------------------------------------------
 template <typename T_pointed_type>
 OffsetPtr<T_pointed_type>::OffsetPtr(const offset_ptr& copy)
-  : _offset(to_offset(copy.to_address()))
 {
+  _offset = to_offset(copy.to_address());
 }
 
 
 //------------------------------------------------------------------------------
 template <typename T_pointed_type>
 OffsetPtr<T_pointed_type>::OffsetPtr(offset_ptr&& move)
-  : _offset(to_offset(move.to_address()))
 {
+  _offset = to_offset(move.to_address());
 }
 
 
@@ -154,6 +152,8 @@ template <typename T_pointed_type>
 std::ptrdiff_t
 OffsetPtr<T_pointed_type>::to_offset(const T_pointed_type* elt) const
 {
+  if (elt == nullptr)
+    return 0;
   return 
     reinterpret_cast<const std::byte*>(elt)
     - reinterpret_cast<const std::byte*>(this);
