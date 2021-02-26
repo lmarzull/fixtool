@@ -1,5 +1,6 @@
 #include "doctest.h"
 #include <OffsetPtr.h>
+#include <cstring>
 
 
 SCENARIO("OffsetPtr")
@@ -10,12 +11,12 @@ SCENARIO("OffsetPtr")
 
     THEN("The instance is equal to nullptr")
     {
-      REQUIRE(a == nullptr);
+      CHECK(a == nullptr);
     }
 
     THEN("std::to_address is equal to nullptr")
     {
-      REQUIRE(std::to_address(a) == nullptr);
+      CHECK(std::to_address(a) == nullptr);
     }
 
     WHEN("Creating another instance with explicit nullptr pointer")
@@ -23,7 +24,7 @@ SCENARIO("OffsetPtr")
       OffsetPtr<int>  b{nullptr};
       THEN("Create a null OffsetPtr instance")
       {
-        REQUIRE(b == nullptr);
+        CHECK(b == nullptr);
       }
     }
 
@@ -32,7 +33,7 @@ SCENARIO("OffsetPtr")
       OffsetPtr<int>  b{a};
       THEN("Create a null OffsetPtr instance")
       {
-        REQUIRE(b == nullptr);
+        CHECK(b == nullptr);
       }
     }
 
@@ -41,7 +42,7 @@ SCENARIO("OffsetPtr")
       OffsetPtr<int>  b{std::move(a)};
       THEN("Create a null OffsetPtr instance")
       {
-        REQUIRE(b == nullptr);
+        CHECK(b == nullptr);
       }
     }
   }
@@ -55,17 +56,17 @@ SCENARIO("OffsetPtr")
 
       THEN("The instance is not equal to nullptr")
       {
-        REQUIRE(ptr_to_a != nullptr);
+        CHECK(ptr_to_a != nullptr);
       }
 
       THEN("The OffsetPtr point to the int")
       {
-        REQUIRE(*ptr_to_a == 123456);
+        CHECK(*ptr_to_a == 123456);
       }
 
       THEN("std::to_address point to the int")
       {
-        REQUIRE(std::to_address(ptr_to_a) == &a);
+        CHECK(std::to_address(ptr_to_a) == &a);
       }
     }
   }
@@ -80,7 +81,7 @@ SCENARIO("OffsetPtr")
       OffsetPtr<int> copy_constructed{ptr_to_a};
       THEN("The instance points to the same int")
       {
-        REQUIRE(*copy_constructed == 123456);
+        CHECK(*copy_constructed == 123456);
       }
     }
 
@@ -89,7 +90,7 @@ SCENARIO("OffsetPtr")
       OffsetPtr<int> move_constructed{std::move(ptr_to_a)};
       THEN("The instance points to the same int")
       {
-        REQUIRE(*move_constructed == 123456);
+        CHECK(*move_constructed == 123456);
       }
     }
 
@@ -98,7 +99,7 @@ SCENARIO("OffsetPtr")
       ptr_to_a = nullptr;
       THEN("nullify the instance")
       {
-        REQUIRE(ptr_to_a == nullptr);
+        CHECK(ptr_to_a == nullptr);
       }
     }
 
@@ -109,7 +110,7 @@ SCENARIO("OffsetPtr")
 
       THEN("nullify the instance")
       {
-        REQUIRE(ptr_to_a == nullptr);
+        CHECK(ptr_to_a == nullptr);
       }
     }
 
@@ -120,8 +121,65 @@ SCENARIO("OffsetPtr")
 
       THEN("nullify the instance")
       {
-        REQUIRE(ptr_to_a == nullptr);
+        CHECK(ptr_to_a == nullptr);
       }
+    }
+  }
+}
+
+
+
+SCENARIO("OffsetPtr: Affecting null OffsetPtr")
+{
+  GIVEN("a not null OffsetPtr pointing to a value in the same address space")
+  {
+    struct S
+    {
+      int value{};
+      OffsetPtr<int> ptr;
+    };
+    S source_struct;
+    source_struct.value = 220772;
+    source_struct.ptr = &source_struct.value;
+
+    WHEN("affecting a nulll OffsetPtr to that OffsetPtr and moving the OffsetPtr and the value to another address space")
+    {
+      OffsetPtr<int> n;
+      source_struct.ptr = n;
+
+      char buffer[sizeof(S)];
+      S* dest_struct = reinterpret_cast<S*>(buffer);
+      memmove(buffer, &source_struct, sizeof(S));
+
+      CHECK(dest_struct->ptr.operator->() == nullptr);
+    }
+  }
+}
+
+
+SCENARIO("OffsetPtr: Affecting null OffsetPtr rvalue")
+{
+  GIVEN("a not null OffsetPtr pointing to a value in the same address space")
+  {
+    struct S
+    {
+      int value{};
+      OffsetPtr<int> ptr;
+    };
+    S source_struct;
+    source_struct.value = 220772;
+    source_struct.ptr = &source_struct.value;
+
+    WHEN("Moving a nulll OffsetPtr to that OffsetPtr and moving the OffsetPtr and the value to another address space")
+    {
+      OffsetPtr<int> n;
+      source_struct.ptr = std::move(n);
+
+      char buffer[sizeof(S)];
+      S* dest_struct = reinterpret_cast<S*>(buffer);
+      memmove(buffer, &source_struct, sizeof(S));
+
+      CHECK(dest_struct->ptr.operator->() == nullptr);
     }
   }
 }
