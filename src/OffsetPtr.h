@@ -5,78 +5,71 @@
 
 //------------------------------------------------------------------------------
 template <typename T_pointed_type>
-class OffsetPtr
+class OffsetPtr final
 {
 public:
-  using element_type  = T_pointed_type;
-  using offset_ptr    = OffsetPtr<element_type>;
+  using element_type    = T_pointed_type;
+  using pointer         = T_pointed_type*;
+  using const_pointer   = const T_pointed_type*;
+  using difference_type = std::ptrdiff_t;
+  using offset_ptr_type = OffsetPtr<element_type>;
 
 
   OffsetPtr() = default;
-  OffsetPtr(T_pointed_type*);
-  OffsetPtr(const offset_ptr& );
-  OffsetPtr(offset_ptr&& );
-
-  std::size_t offset() const { return _offset; }
-
-  T_pointed_type*       operator->();
-  const T_pointed_type* operator->() const;
-
-  T_pointed_type&       operator*();
-  const T_pointed_type& operator*() const;
+  OffsetPtr(pointer);
+  OffsetPtr(const offset_ptr_type& );
 
 
-  offset_ptr& operator=( T_pointed_type* ptr );
-  offset_ptr& operator=( const offset_ptr& ptr );
-  offset_ptr& operator=( offset_ptr&& ptr );
+  difference_type offset() const noexcept { return _offset; }
+
+
+  pointer operator->() noexcept;
+  const_pointer operator->() const noexcept;
+
+  element_type&       operator*() noexcept;
+  const element_type& operator*() const noexcept;
+
+
+  offset_ptr_type& operator=( pointer ptr ) noexcept;
+  offset_ptr_type& operator=( const offset_ptr_type& ptr ) noexcept;
 
 
 private:
-  std::ptrdiff_t  _offset{};
+  difference_type  _offset{};
 
-  const T_pointed_type* to_address() const;
-  std::ptrdiff_t to_offset(const T_pointed_type* elt) const;
+  const_pointer to_address() const noexcept;
+  difference_type to_offset(const_pointer elt) const noexcept;
 };
 
 
 //------------------------------------------------------------------------------
 template <typename T_pointed_type>
-OffsetPtr<T_pointed_type>::OffsetPtr(T_pointed_type* elt)
+OffsetPtr<T_pointed_type>::OffsetPtr(pointer elt)
+  : _offset(to_offset(elt))
+{}
+
+
+//------------------------------------------------------------------------------
+template <typename T_pointed_type>
+OffsetPtr<T_pointed_type>::OffsetPtr(const offset_ptr_type& copy)
+  : _offset(to_offset(copy.to_address()))
+{}
+
+
+//------------------------------------------------------------------------------
+template <typename T_pointed_type>
+auto
+OffsetPtr<T_pointed_type>::operator->() noexcept -> pointer
 {
-  _offset = to_offset(elt);
+  return const_cast<pointer>(
+      reinterpret_cast<const OffsetPtr<element_type>*>(this)->operator->());
 }
 
 
 //------------------------------------------------------------------------------
 template <typename T_pointed_type>
-OffsetPtr<T_pointed_type>::OffsetPtr(const offset_ptr& copy)
-{
-  _offset = to_offset(copy.to_address());
-}
-
-
-//------------------------------------------------------------------------------
-template <typename T_pointed_type>
-OffsetPtr<T_pointed_type>::OffsetPtr(offset_ptr&& move)
-{
-  _offset = to_offset(move.to_address());
-}
-
-
-//------------------------------------------------------------------------------
-template <typename T_pointed_type>
-T_pointed_type*
-OffsetPtr<T_pointed_type>::operator->()
-{
-  return const_cast<T_pointed_type*>(
-      reinterpret_cast<const OffsetPtr<T_pointed_type>*>(this)->operator->());
-}
-
-
-//------------------------------------------------------------------------------
-template <typename T_pointed_type>
-const T_pointed_type*
-OffsetPtr<T_pointed_type>::operator->() const
+auto
+OffsetPtr<T_pointed_type>::operator->() const noexcept -> const_pointer
 {
   return to_address();
 }
@@ -84,19 +77,19 @@ OffsetPtr<T_pointed_type>::operator->() const
 
 //------------------------------------------------------------------------------
 template <typename T_pointed_type>
-T_pointed_type&
-OffsetPtr<T_pointed_type>::operator*()
+auto
+OffsetPtr<T_pointed_type>::operator*() noexcept -> element_type&
 {
-  return const_cast<T_pointed_type&>(
-      reinterpret_cast<const OffsetPtr<T_pointed_type>*>(this)->operator*()
+  return const_cast<element_type&>(
+      reinterpret_cast<const offset_ptr_type*>(this)->operator*()
       );
 }
 
 
 //------------------------------------------------------------------------------
 template <typename T_pointed_type>
-const T_pointed_type&
-OffsetPtr<T_pointed_type>::operator*() const
+auto
+OffsetPtr<T_pointed_type>::operator*() const noexcept -> const element_type&
 {
   return *to_address();
 }
@@ -105,7 +98,7 @@ OffsetPtr<T_pointed_type>::operator*() const
 //------------------------------------------------------------------------------
 template <typename T_pointed_type>
 auto
-OffsetPtr<T_pointed_type>::operator=(T_pointed_type* ptr) -> offset_ptr&
+OffsetPtr<T_pointed_type>::operator=(pointer ptr) noexcept -> offset_ptr_type&
 {
   _offset = to_offset(ptr);
   return *this;
@@ -115,7 +108,7 @@ OffsetPtr<T_pointed_type>::operator=(T_pointed_type* ptr) -> offset_ptr&
 //------------------------------------------------------------------------------
 template <typename T_pointed_type>
 auto
-OffsetPtr<T_pointed_type>::operator=(const offset_ptr& from) -> offset_ptr&
+OffsetPtr<T_pointed_type>::operator=(const offset_ptr_type& from) noexcept -> offset_ptr_type&
 {
   _offset = to_offset(from.to_address());
   return *this;
@@ -125,22 +118,11 @@ OffsetPtr<T_pointed_type>::operator=(const offset_ptr& from) -> offset_ptr&
 //------------------------------------------------------------------------------
 template <typename T_pointed_type>
 auto
-OffsetPtr<T_pointed_type>::operator=(offset_ptr&& from) -> offset_ptr&
-{
-  _offset = to_offset(from.to_address());
-  return *this;
-}
-
-
-
-//------------------------------------------------------------------------------
-template <typename T_pointed_type>
-const T_pointed_type*
-OffsetPtr<T_pointed_type>::to_address() const
+OffsetPtr<T_pointed_type>::to_address() const noexcept -> const_pointer
 {
   if (_offset == 0)
     return nullptr;
-  return reinterpret_cast<const T_pointed_type*>(
+  return reinterpret_cast<const_pointer>(
       reinterpret_cast<const std::byte*>(this) + _offset
       );
 }
@@ -149,11 +131,11 @@ OffsetPtr<T_pointed_type>::to_address() const
 
 //------------------------------------------------------------------------------
 template <typename T_pointed_type>
-std::ptrdiff_t
-OffsetPtr<T_pointed_type>::to_offset(const T_pointed_type* elt) const
+auto
+OffsetPtr<T_pointed_type>::to_offset(const_pointer elt) const noexcept -> difference_type
 {
   if (elt == nullptr)
-    return 0;
+    return static_cast<difference_type>(0);
   return 
     reinterpret_cast<const std::byte*>(elt)
     - reinterpret_cast<const std::byte*>(this);
